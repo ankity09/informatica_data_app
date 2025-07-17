@@ -205,27 +205,27 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Dashboard Embed Area */}
+      {/* Databricks Dashboard Embed */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Analytics Dashboard</h3>
-          <button className="btn-secondary text-sm">
-            Refresh Data
+          <h3 className="text-lg font-semibold text-gray-900">Databricks Analytics Dashboard</h3>
+          <button 
+            className="btn-secondary text-sm"
+            onClick={() => window.location.reload()}
+          >
+            Refresh Dashboard
           </button>
         </div>
         
-        <div className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-          <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h4 className="text-lg font-medium text-gray-900 mb-2">Dashboard Embed</h4>
-          <p className="text-gray-600 mb-4">
-            Your embedded dashboard will appear here. You can embed Databricks dashboards, 
-            Tableau, Power BI, or any other analytics platform.
-          </p>
-          <div className="space-y-2 text-sm text-gray-500">
-            <p>• Embed URL: <code className="bg-gray-200 px-2 py-1 rounded">https://your-dashboard-url.com</code></p>
-            <p>• Recommended size: 1200x800 pixels</p>
-            <p>• Supports iframe embedding</p>
-          </div>
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <iframe
+            src="https://e2-demo-west.cloud.databricks.com/embed/dashboardsv3/01f05cff69fa1b48b0fb81d09e7dc101?o=2556758628403379"
+            width="100%"
+            height="600"
+            frameBorder="0"
+            title="Databricks Analytics Dashboard"
+            className="w-full"
+          />
         </div>
       </div>
 
