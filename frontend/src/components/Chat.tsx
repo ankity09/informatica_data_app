@@ -10,7 +10,11 @@ interface Message {
 }
 
 const Chat: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>(() => {
+    // Load messages from localStorage on component mount
+    const savedMessages = localStorage.getItem('chat-messages')
+    return savedMessages ? JSON.parse(savedMessages) : []
+  })
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -21,6 +25,11 @@ const Chat: React.FC = () => {
 
   useEffect(() => {
     scrollToBottom()
+  }, [messages])
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('chat-messages', JSON.stringify(messages))
   }, [messages])
 
   const sendMessage = async (message: string) => {
@@ -99,6 +108,7 @@ const Chat: React.FC = () => {
 
   const clearChat = () => {
     setMessages([])
+    localStorage.removeItem('chat-messages')
   }
 
   const formatTime = (timestamp: string) => {
@@ -125,7 +135,7 @@ const Chat: React.FC = () => {
       </div>
 
       {/* Chat Container */}
-      <div className="card h-[600px] flex flex-col">
+      <div className="card h-[800px] flex flex-col">
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
