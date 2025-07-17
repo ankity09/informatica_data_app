@@ -40,10 +40,15 @@ pip install -r requirements.txt
 
 ### 2. Configure Environment
 
-The app will automatically use the `SERVING_ENDPOINT` environment variable from your Databricks Apps configuration. For local development, you can set it manually:
+The app is configured to use the Databricks serving endpoint `ka-981b9343-endpoint`. For local development, you can set it manually:
 
 ```bash
-export SERVING_ENDPOINT=your-databricks-serving-endpoint-name
+export SERVING_ENDPOINT=ka-981b9343-endpoint
+```
+
+**Note**: Make sure you have Databricks CLI configured for local development:
+```bash
+databricks configure --token
 ```
 
 ### 3. Build the Frontend

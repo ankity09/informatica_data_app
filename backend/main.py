@@ -41,10 +41,13 @@ app.add_middleware(
 # Get serving endpoint from environment
 SERVING_ENDPOINT = os.getenv('SERVING_ENDPOINT')
 if not SERVING_ENDPOINT:
-    logger.warning("SERVING_ENDPOINT environment variable not set. Chat functionality will be limited.")
-    SERVING_ENDPOINT = "demo-endpoint"
+    # Default to the user's Databricks endpoint
+    SERVING_ENDPOINT = "ka-981b9343-endpoint"
+    logger.info(f"Using default Databricks endpoint: {SERVING_ENDPOINT}")
+else:
+    logger.info(f"Using configured Databricks endpoint: {SERVING_ENDPOINT}")
 
-ENDPOINT_SUPPORTS_FEEDBACK = endpoint_supports_feedback(SERVING_ENDPOINT) if SERVING_ENDPOINT != "demo-endpoint" else False
+ENDPOINT_SUPPORTS_FEEDBACK = endpoint_supports_feedback(SERVING_ENDPOINT)
 
 # Pydantic models
 class ChatMessage(BaseModel):
@@ -83,46 +86,36 @@ async def chat(message: ChatMessage):
     try:
         logger.info(f"Received chat message: {message.message[:100]}...")
         
-        # Demo mode if no serving endpoint is configured
-        if SERVING_ENDPOINT == "demo-endpoint":
-            demo_response = f"I'm a demo chatbot for Radius Recycling. You said: '{message.message}'. In production, this would connect to your Databricks Model Serving endpoint."
-            
-            response = ChatResponse(
-                message=demo_response,
-                timestamp=datetime.now().isoformat(),
-                request_id=None
-            )
-        else:
-            # Prepare messages for the model serving endpoint
-            input_messages = [{
-                "role": "user",
-                "content": message.message
-            }]
-            
-            # Query the Databricks model serving endpoint
-            response_messages, request_id = query_endpoint(
-                endpoint_name=SERVING_ENDPOINT,
-                messages=input_messages,
-                max_tokens=400,
-                return_traces=ENDPOINT_SUPPORTS_FEEDBACK
-            )
-            
-            # Extract the assistant's response
-            assistant_message = ""
-            for msg in response_messages:
-                if msg.get("role") == "assistant" and msg.get("content"):
-                    assistant_message = msg["content"]
-                    break
-            
-            if not assistant_message:
-                assistant_message = "I'm sorry, I couldn't generate a response. Please try again."
-            
-            # Create response
-            response = ChatResponse(
-                message=assistant_message,
-                timestamp=datetime.now().isoformat(),
-                request_id=request_id
-            )
+        # Prepare messages for the model serving endpoint
+        input_messages = [{
+            "role": "user",
+            "content": message.message
+        }]
+        
+        # Query the Databricks model serving endpoint
+        response_messages, request_id = query_endpoint(
+            endpoint_name=SERVING_ENDPOINT,
+            messages=input_messages,
+            max_tokens=400,
+            return_traces=ENDPOINT_SUPPORTS_FEEDBACK
+        )
+        
+        # Extract the assistant's response
+        assistant_message = ""
+        for msg in response_messages:
+            if msg.get("role") == "assistant" and msg.get("content"):
+                assistant_message = msg["content"]
+                break
+        
+        if not assistant_message:
+            assistant_message = "I'm sorry, I couldn't generate a response. Please try again."
+        
+        # Create response
+        response = ChatResponse(
+            message=assistant_message,
+            timestamp=datetime.now().isoformat(),
+            request_id=request_id
+        )
         
         # Store in chat history
         chat_history.append({

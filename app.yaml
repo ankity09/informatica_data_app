@@ -4,4 +4,4 @@ env:
   - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
     value: "false"
   - name: "SERVING_ENDPOINT"
-    valueFrom: "serving_endpoint"
+    value: "ka-981b9343-endpoint"
