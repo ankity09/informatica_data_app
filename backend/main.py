@@ -4,7 +4,7 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 from datetime import datetime
 import json
@@ -115,16 +115,16 @@ async def chat(message: ChatMessage):
         
         logger.info(f"Querying endpoint: {SERVING_ENDPOINT}")
         
-        # Query the Databricks model serving endpoint
+        # Query the Databricks model serving endpoint with increased max_tokens
         response_messages, request_id = query_endpoint(
             endpoint_name=SERVING_ENDPOINT,
             messages=input_messages,
-            max_tokens=400,
+            max_tokens=2000,  # Increased from 400 to 2000
             return_traces=ENDPOINT_SUPPORTS_FEEDBACK
         )
         
         logger.info(f"Received response from endpoint, request_id: {request_id}")
-        logger.info(f"Response messages: {response_messages}")
+        logger.info(f"Response length: {len(str(response_messages))} characters")
         
         # Extract the assistant's response
         assistant_message = ""
@@ -151,6 +151,9 @@ async def chat(message: ChatMessage):
             logger.warning(f"Response structure: {type(response_messages)} - {response_messages}")
             assistant_message = "I'm sorry, I couldn't generate a response. Please try again."
         
+        # Log response size for debugging
+        logger.info(f"Assistant message length: {len(assistant_message)} characters")
+        
         # Create response
         response = ChatResponse(
             message=assistant_message,
@@ -171,6 +174,19 @@ async def chat(message: ChatMessage):
             chat_history.pop(0)
         
         logger.info(f"Generated response: {response.message[:100]}...")
+        
+        # If response is very large, use streaming
+        if len(assistant_message) > 10000:  # 10KB threshold
+            logger.info("Response is large, using streaming")
+            return StreamingResponse(
+                iter([json.dumps({
+                    "message": assistant_message,
+                    "timestamp": datetime.now().isoformat(),
+                    "request_id": request_id
+                })]),
+                media_type="application/json"
+            )
+        
         return response
         
     except Exception as e:

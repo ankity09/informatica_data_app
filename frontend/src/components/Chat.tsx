@@ -38,7 +38,7 @@ const Chat: React.FC = () => {
     try {
       // Create an AbortController for timeout handling
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minutes timeout
+      const timeoutId = setTimeout(() => controller.abort(), 300000) // 5 minutes timeout for large responses
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -60,9 +60,23 @@ const Chat: React.FC = () => {
         throw new Error(`Server error: ${response.status} - ${errorText}`)
       }
 
-      const data = await response.json()
-      console.log('Response from backend:', data)
-      return data
+      // Handle streaming responses
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json()
+        console.log('Response from backend:', data)
+        return data
+      } else {
+        // Handle streaming response
+        const text = await response.text()
+        console.log('Streaming response from backend:', text)
+        try {
+          return JSON.parse(text)
+        } catch (e) {
+          console.error('Failed to parse streaming response:', e)
+          throw new Error('Failed to parse response from server')
+        }
+      }
     } catch (error: any) {
       console.error('Error sending message:', error)
       if (error.name === 'AbortError') {
