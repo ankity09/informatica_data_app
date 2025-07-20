@@ -113,6 +113,8 @@ async def chat(message: ChatMessage):
             "content": message.message
         }]
         
+        logger.info(f"Querying endpoint: {SERVING_ENDPOINT}")
+        
         # Query the Databricks model serving endpoint
         response_messages, request_id = query_endpoint(
             endpoint_name=SERVING_ENDPOINT,
@@ -120,6 +122,8 @@ async def chat(message: ChatMessage):
             max_tokens=400,
             return_traces=ENDPOINT_SUPPORTS_FEEDBACK
         )
+        
+        logger.info(f"Received response from endpoint, request_id: {request_id}")
         
         # Extract the assistant's response
         assistant_message = ""
@@ -129,6 +133,7 @@ async def chat(message: ChatMessage):
                 break
         
         if not assistant_message:
+            logger.warning("No assistant message found in response")
             assistant_message = "I'm sorry, I couldn't generate a response. Please try again."
         
         # Create response
@@ -155,6 +160,9 @@ async def chat(message: ChatMessage):
         
     except Exception as e:
         logger.error(f"Error in chat endpoint: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}")
 
 @app.get("/api/chat/history")

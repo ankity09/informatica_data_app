@@ -36,6 +36,10 @@ const Chat: React.FC = () => {
 
   const sendMessage = async (message: string) => {
     try {
+      // Create an AbortController for timeout handling
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minutes timeout
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -44,17 +48,25 @@ const Chat: React.FC = () => {
         body: JSON.stringify({
           message,
           timestamp: new Date().toISOString()
-        })
+        }),
+        signal: controller.signal
       })
 
+      clearTimeout(timeoutId)
+
       if (!response.ok) {
-        throw new Error('Failed to send message')
+        const errorText = await response.text()
+        console.error('Server error:', response.status, errorText)
+        throw new Error(`Server error: ${response.status} - ${errorText}`)
       }
 
       const data = await response.json()
       return data
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error)
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out. The AI is taking longer than expected to respond.')
+      }
       throw error
     }
   }
