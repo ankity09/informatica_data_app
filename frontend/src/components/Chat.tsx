@@ -61,6 +61,7 @@ const Chat: React.FC = () => {
       }
 
       const data = await response.json()
+      console.log('Response from backend:', data)
       return data
     } catch (error: any) {
       console.error('Error sending message:', error)
@@ -87,6 +88,7 @@ const Chat: React.FC = () => {
 
     try {
       const response = await sendMessage(inputMessage)
+      console.log('Processed response:', response)
       
       const assistantMessage: Message = {
         id: Date.now() + 1,
@@ -95,6 +97,7 @@ const Chat: React.FC = () => {
         timestamp: new Date().toISOString()
       }
 
+      console.log('Created assistant message:', assistantMessage)
       setMessages(prev => [...prev, assistantMessage])
     } catch (error) {
       console.error('Error sending message:', error)

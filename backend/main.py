@@ -124,16 +124,31 @@ async def chat(message: ChatMessage):
         )
         
         logger.info(f"Received response from endpoint, request_id: {request_id}")
+        logger.info(f"Response messages: {response_messages}")
         
         # Extract the assistant's response
         assistant_message = ""
-        for msg in response_messages:
-            if msg.get("role") == "assistant" and msg.get("content"):
-                assistant_message = msg["content"]
-                break
+        
+        # Handle different response formats
+        if isinstance(response_messages, list):
+            for msg in response_messages:
+                if isinstance(msg, dict) and msg.get("role") == "assistant" and msg.get("content"):
+                    assistant_message = msg["content"]
+                    break
+                elif isinstance(msg, dict) and "content" in msg:
+                    # Handle case where role might not be present
+                    assistant_message = msg["content"]
+                    break
+        elif isinstance(response_messages, dict):
+            # Handle single message response
+            if response_messages.get("content"):
+                assistant_message = response_messages["content"]
+            elif response_messages.get("message"):
+                assistant_message = response_messages["message"]
         
         if not assistant_message:
             logger.warning("No assistant message found in response")
+            logger.warning(f"Response structure: {type(response_messages)} - {response_messages}")
             assistant_message = "I'm sorry, I couldn't generate a response. Please try again."
         
         # Create response
