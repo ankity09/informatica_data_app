@@ -52,7 +52,7 @@ async def startup_event():
 SERVING_ENDPOINT = os.getenv('SERVING_ENDPOINT')
 if not SERVING_ENDPOINT:
     # Default to the user's Databricks endpoint
-    SERVING_ENDPOINT = "ka-981b9343-endpoint"
+    SERVING_ENDPOINT = "agents_ankit_yadav-dbdemos-system_consumption_agent"
     logger.info(f"Using default Databricks endpoint: {SERVING_ENDPOINT}")
 else:
     logger.info(f"Using configured Databricks endpoint: {SERVING_ENDPOINT}")

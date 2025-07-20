@@ -40,10 +40,10 @@ pip install -r requirements.txt
 
 ### 2. Configure Environment
 
-The app is configured to use the Databricks serving endpoint `ka-981b9343-endpoint`. For local development, you can set it manually:
+The app is configured to use the Databricks serving endpoint `agents_ankit_yadav-dbdemos-system_consumption_agent`. For local development, you can set it manually:
 
 ```bash
-export SERVING_ENDPOINT=ka-981b9343-endpoint
+export SERVING_ENDPOINT=agents_ankit_yadav-dbdemos-system_consumption_agent
 ```
 
 **Note**: Make sure you have Databricks CLI configured for local development:
