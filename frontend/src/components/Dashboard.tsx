@@ -26,7 +26,7 @@ const Dashboard: React.FC = () => {
             </button>
             <button 
               className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg"
-              onClick={() => window.open('https://e2-demo-west.cloud.databricks.com/embed/dashboardsv3/01f05cff69fa1b48b0fb81d09e7dc101?o=2556758628403379', '_blank')}
+              onClick={() => window.open('https://e2-demo-field-eng.cloud.databricks.com/embed/dashboardsv3/01f01e4558791c2a8806ade6f298da2c?o=1444828305810485', '_blank')}
             >
               <Maximize2 className="w-4 h-4" />
               <span className="font-medium">Fullscreen</span>
@@ -37,7 +37,7 @@ const Dashboard: React.FC = () => {
         {/* Dashboard Frame */}
         <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden">
           <iframe
-            src="https://e2-demo-west.cloud.databricks.com/embed/dashboardsv3/01f05cff69fa1b48b0fb81d09e7dc101?o=2556758628403379"
+            src="https://e2-demo-field-eng.cloud.databricks.com/embed/dashboardsv3/01f01e4558791c2a8806ade6f298da2c?o=1444828305810485"
             width="100%"
             height="100%"
             frameBorder="0"

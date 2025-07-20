@@ -10,6 +10,7 @@
     "dev": "cd frontend && vite"
   },
   "dependencies": {
+    "@databricks/aibi-client": "^0.0.0-alpha.6",
     "chart.js": "^4.4.0",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
