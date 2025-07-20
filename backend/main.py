@@ -38,6 +38,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Log startup information"""
+    logger.info("Starting Radius Recycling Chatbot API")
+    logger.info(f"Environment: SERVING_ENDPOINT={SERVING_ENDPOINT}")
+    logger.info(f"Static directory: {static_dir}")
+    logger.info(f"Static directory exists: {os.path.exists(static_dir)}")
+    if os.path.exists(static_dir):
+        logger.info(f"Static files: {os.listdir(static_dir)}")
+
 # Get serving endpoint from environment
 SERVING_ENDPOINT = os.getenv('SERVING_ENDPOINT')
 if not SERVING_ENDPOINT:
@@ -47,7 +57,13 @@ if not SERVING_ENDPOINT:
 else:
     logger.info(f"Using configured Databricks endpoint: {SERVING_ENDPOINT}")
 
-ENDPOINT_SUPPORTS_FEEDBACK = endpoint_supports_feedback(SERVING_ENDPOINT)
+# Safely check endpoint support with error handling
+try:
+    ENDPOINT_SUPPORTS_FEEDBACK = endpoint_supports_feedback(SERVING_ENDPOINT)
+    logger.info(f"Endpoint feedback support: {ENDPOINT_SUPPORTS_FEEDBACK}")
+except Exception as e:
+    logger.warning(f"Could not check endpoint feedback support: {str(e)}")
+    ENDPOINT_SUPPORTS_FEEDBACK = False
 
 # Pydantic models
 class ChatMessage(BaseModel):
@@ -69,6 +85,11 @@ class HealthResponse(BaseModel):
 chat_history = []
 
 # --- API Routes ---
+@app.get("/")
+async def root():
+    """Root endpoint - redirect to frontend"""
+    return FileResponse(os.path.join(static_dir, "index.html"))
+
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint"""
