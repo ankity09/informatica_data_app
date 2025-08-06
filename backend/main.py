@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="Radius Recycling Chatbot API",
-    description="API for Radius Recycling AI Chatbot with Databricks Model Serving",
+    title="Informatica Data Intelligence API",
+    description="API for Informatica Data Intelligence App with Databricks Model Serving",
     version="1.0.0"
 )
 
@@ -41,7 +41,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     """Log startup information"""
-    logger.info("Starting Radius Recycling Chatbot API")
+    logger.info("Starting Informatica Data Intelligence API")
     logger.info(f"Environment: SERVING_ENDPOINT={SERVING_ENDPOINT}")
     logger.info(f"Static directory: {static_dir}")
     logger.info(f"Static directory exists: {os.path.exists(static_dir)}")
@@ -51,8 +51,8 @@ async def startup_event():
 # Get serving endpoint from environment
 SERVING_ENDPOINT = os.getenv('SERVING_ENDPOINT')
 if not SERVING_ENDPOINT:
-    # Default to the user's Databricks endpoint
-    SERVING_ENDPOINT = "agents_ankit_yadav-dbdemos-system_consumption_agent"
+    # Default to the user.*multi-agent supervisor endpoint
+    SERVING_ENDPOINT = "mas-43e5c6fd-endpoint"
     logger.info(f"Using default Databricks endpoint: {SERVING_ENDPOINT}")
 else:
     logger.info(f"Using configured Databricks endpoint: {SERVING_ENDPOINT}")

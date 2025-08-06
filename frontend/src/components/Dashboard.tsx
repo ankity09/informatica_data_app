@@ -13,7 +13,7 @@ const Dashboard: React.FC = () => {
               Analytics Dashboard
             </h2>
             <p className="text-gray-600 text-lg">
-              Real-time insights into your recycling operations
+              Real-time insights into your data operations
             </p>
           </div>
           <div className="flex items-center space-x-3">
@@ -26,7 +26,7 @@ const Dashboard: React.FC = () => {
             </button>
             <button 
               className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg"
-              onClick={() => window.open('https://e2-demo-field-eng.cloud.databricks.com/embed/dashboardsv3/01f01e4558791c2a8806ade6f298da2c?o=1444828305810485', '_blank')}
+              onClick={() => window.open('https://e2-demo-west.cloud.databricks.com/embed/dashboardsv3/01f0696d102b145daeaec62e58c49c22?o=2556758628403379', '_blank')}
             >
               <Maximize2 className="w-4 h-4" />
               <span className="font-medium">Fullscreen</span>
@@ -37,11 +37,11 @@ const Dashboard: React.FC = () => {
         {/* Dashboard Frame */}
         <div className="flex-1 bg-white/90 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden">
           <iframe
-            src="https://e2-demo-field-eng.cloud.databricks.com/embed/dashboardsv3/01f01e4558791c2a8806ade6f298da2c?o=1444828305810485"
+            src="https://e2-demo-west.cloud.databricks.com/embed/dashboardsv3/01f0696d102b145daeaec62e58c49c22?o=2556758628403379"
             width="100%"
             height="100%"
             frameBorder="0"
-            title="Databricks Analytics Dashboard"
+            title="Informatica Databricks Analytics Dashboard"
             className="w-full h-full"
             style={{ minHeight: '600px' }}
           />

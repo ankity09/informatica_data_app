@@ -1,7 +1,7 @@
 {
-  "name": "radius-chatbot-app",
+  "name": "informatica-chatbot-app",
   "version": "1.0.0",
-  "description": "Radius Recycling AI Chatbot App with Dashboard and Chat Interface",
+  "description": "Informatica Data Intelligence App with Dashboard and Chat Interface",
   "private": true,
   "type": "module",
   "scripts": {

@@ -19,7 +19,7 @@ export default {
           800: '#075985',
           900: '#0c4a6e',
         },
-        radius: {
+        informatica: {
           50: '#f0fdf4',
           100: '#dcfce7',
           200: '#bbf7d0',

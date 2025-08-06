@@ -12,7 +12,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, setActiveTab }
       id: 'dashboard' as const,
       label: 'Analytics Dashboard',
       icon: BarChart3,
-      description: 'View your recycling data insights'
+      description: 'View your data insights'
     },
     {
       id: 'chat' as const,

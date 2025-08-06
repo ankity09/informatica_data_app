@@ -169,7 +169,7 @@ const Chat: React.FC = () => {
               AI Assistant
             </h2>
             <p className="text-gray-600 text-lg">
-              Chat with your recycling data intelligence
+              Chat with your data intelligence
             </p>
           </div>
           <button 
@@ -190,15 +190,15 @@ const Chat: React.FC = () => {
                 <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Sparkles className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Welcome to Radius AI Assistant</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Welcome to Informatica AI Assistant</h3>
                 <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
-                  I can help you analyze your recycling data, answer questions about operations, 
+                  I can help you analyze your data, answer questions about operations, 
                   and provide insights. Try asking me something!
                 </p>
                 <div className="space-y-3 text-sm text-gray-500 max-w-md mx-auto">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>"What are our top performing recycling categories this month?"</span>
+                    <span>"What are our top performing data categories this month?"</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
@@ -206,7 +206,7 @@ const Chat: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                    <span>"What's the efficiency of our sorting process?"</span>
+                    <span>"What's the efficiency of our data processing?"</span>
                   </div>
                 </div>
               </div>
@@ -339,7 +339,7 @@ const Chat: React.FC = () => {
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything about your recycling data..."
+                  placeholder="Ask me anything about your data..."
                   className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   rows={2}
                   disabled={isLoading}

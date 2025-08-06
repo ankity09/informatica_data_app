@@ -1,1 +1,1 @@
-# Backend package for Radius Recycling Chatbot App 
+# Backend package for Informatica Data Intelligence App 

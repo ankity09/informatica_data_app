@@ -14,10 +14,10 @@ const Header: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white tracking-tight">
-                  Radius Analytics
+                  Informatica Analytics
                 </h1>
                 <p className="text-blue-100 text-sm font-medium">
-                  AI-Powered Recycling Intelligence
+                  AI-Powered Data Intelligence
                 </p>
               </div>
             </div>

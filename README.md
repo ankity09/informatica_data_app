@@ -1,6 +1,6 @@
-# Radius Recycling AI Chatbot App
+# Informatica Data Intelligence App
 
-A modern web application for Radius Recycling that provides a chatbot interface backed by Databricks Model Serving, along with a dashboard for data insights.
+A modern web application for Informatica that provides a chatbot interface backed by Databricks Model Serving, along with a dashboard for data insights.
 
 ## Features
 
@@ -146,7 +146,7 @@ The FastAPI backend provides the following endpoints:
 ## Project Structure
 
 ```
-radius_app/
+informatica_app/
 ├── backend/
 │   ├── __init__.py
 │   ├── main.py
@@ -181,7 +181,7 @@ The app uses Tailwind CSS for styling. You can customize the theme in `frontend/
 theme: {
   extend: {
     colors: {
-      radius: {
+      informatica: {
         // Your brand colors
         500: '#22c55e',
       }
@@ -257,4 +257,4 @@ For support and questions:
 
 ---
 
-**Built with ❤️ for Radius Recycling**
+**Built with ❤️ for Informatica**

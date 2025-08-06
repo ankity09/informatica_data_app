@@ -4,6 +4,6 @@ env:
   - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
     value: "false"
   - name: "SERVING_ENDPOINT"
-    value: "agents_ankit_yadav-dbdemos-system_consumption_agent"
+    value: "mas-43e5c6fd-endpoint"
   - name: "PYTHONPATH"
     value: "."
