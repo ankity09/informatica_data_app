@@ -122,9 +122,30 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
     request_id = res.get("databricks_output", {}).get("databricks_request_id")
     
     # Handle different response formats
+    
+    # Handle different response formats
     if "output" in res:
         # Multi-agent supervisor response format
-        return [{"role": "assistant", "content": res["output"]}], request_id
+        output_content = res["output"]
+        if isinstance(output_content, list):
+            # If output is a list, try to extract text content
+            text_parts = []
+            for item in output_content:
+                if isinstance(item, dict):
+                    if "content" in item:
+                        text_parts.append(str(item["content"]))
+                    elif "text" in item:
+                        text_parts.append(str(item["text"]))
+                    elif "message" in item:
+                        text_parts.append(str(item["message"]))
+                    else:
+                        text_parts.append(str(item))
+                else:
+                    text_parts.append(str(item))
+            content = " ".join(text_parts)
+        else:
+            content = str(output_content)
+        return [{"role": "assistant", "content": content}], request_id
     elif "messages" in res:
         return res["messages"], request_id
     elif "choices" in res:
@@ -132,9 +153,23 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
     else:
         # Fallback: try to extract response from various possible fields
         if "response" in res:
-            return [{"role": "assistant", "content": res["response"]}], request_id
+            response_content = res["response"]
+            if isinstance(response_content, list):
+                content = " ".join([str(item) for item in response_content])
+            else:
+                content = str(response_content)
+            return [{"role": "assistant", "content": content}], request_id
         elif "text" in res:
-            return [{"role": "assistant", "content": res["text"]}], request_id
+            text_content = res["text"]
+            if isinstance(text_content, list):
+                content = " ".join([str(item) for item in text_content])
+            else:
+                content = str(text_content)
+            return [{"role": "assistant", "content": content}], request_id
         else:
             # If we can't find a response, return the raw response as a string
-            return [{"role": "assistant", "content": str(res)}], request_id
+            if isinstance(res, list):
+                content = " ".join([str(item) for item in res])
+            else:
+                content = str(res)
+            return [{"role": "assistant", "content": content}], request_id
