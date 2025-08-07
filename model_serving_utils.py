@@ -14,10 +14,18 @@ def query_endpoint_stream(endpoint_name: str, messages: list[dict[str, str]], ma
     """Streams chat-completions style chunks and converts to ChatAgent-style streaming deltas."""
     client = get_deploy_client("databricks")
 
-    # Prepare input payload
+    # For multi-agent supervisor endpoints, use the input format
+    # Extract the user message from the messages array
+    user_message = ""
+    for msg in messages:
+        if msg.get("role") == "user":
+            user_message = msg.get("content", "")
+            break
+
+    # Prepare input payload for multi-agent supervisor
     inputs = {
-        "messages": messages,
-        "max_tokens": max_tokens,
+        "input": user_message,
+        "max_output_tokens": max_tokens,
     }
     if return_traces:
         inputs["databricks_options"] = {"return_trace": True}
@@ -44,25 +52,6 @@ def query_endpoint_stream(endpoint_name: str, messages: list[dict[str, str]], ma
         else:
             _throw_unexpected_endpoint_format()
 
-def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
-    """
-    Query an endpoint, returning the string message content and request
-    ID for feedback
-    """
-    """Calls a model serving endpoint."""
-    inputs={'messages': messages, "max_tokens": max_tokens},
-    if return_traces:
-        inputs['databricks_options'] = {'return_trace': True}
-    res = get_deploy_client('databricks').predict(
-        endpoint=endpoint_name,
-        inputs={'messages': messages, "max_tokens": max_tokens},
-    )
-    request_id = res.get("databricks_output", {}).get("databricks_request_id")
-    if "messages" in res:
-        return res["messages"], request_id
-    elif "choices" in res:
-        return [res["choices"][0]["message"]], request_id
-    _throw_unexpected_endpoint_format()
 
 def submit_feedback(endpoint, request_id, rating):
     """Submit feedback to the agent."""
@@ -99,3 +88,51 @@ def endpoint_supports_feedback(endpoint_name):
     w = WorkspaceClient()
     endpoint = w.serving_endpoints.get(endpoint_name)
     return "feedback" in [entity.entity_name for entity in endpoint.config.served_entities] 
+def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
+    """
+    Query an endpoint, returning the string message content and request
+    ID for feedback
+    """
+    """Calls a model serving endpoint."""
+    
+    # For multi-agent supervisor endpoints, use the 'input' format
+    # Extract the user message from the messages array
+    user_message = ""
+    for msg in messages:
+        if msg.get("role") == "user":
+            user_message = msg.get("content", "")
+            break
+    
+    # Prepare input payload for multi-agent supervisor
+    inputs = {
+        "input": user_message,
+        "max_output_tokens": max_tokens,
+    }
+    
+    if return_traces:
+        inputs["databricks_options"] = {"return_trace": True}
+    
+    res = get_deploy_client('databricks').predict(
+        endpoint=endpoint_name,
+        inputs=inputs,
+    )
+    
+    request_id = res.get("databricks_output", {}).get("databricks_request_id")
+    
+    # Handle different response formats
+    if "output" in res:
+        # Multi-agent supervisor response format
+        return [{"role": "assistant", "content": res["output"]}], request_id
+    elif "messages" in res:
+        return res["messages"], request_id
+    elif "choices" in res:
+        return [res["choices"][0]["message"]], request_id
+    else:
+        # Fallback: try to extract response from various possible fields
+        if "response" in res:
+            return [{"role": "assistant", "content": res["response"]}], request_id
+        elif "text" in res:
+            return [{"role": "assistant", "content": res["text"]}], request_id
+        else:
+            # If we can't find a response, return the raw response as a string
+            return [{"role": "assistant", "content": str(res)}], request_id
