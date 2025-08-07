@@ -122,17 +122,65 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
     request_id = res.get("databricks_output", {}).get("databricks_request_id")
     
     # Handle different response formats
+    """
+    Poll for the final result from a multi-agent supervisor call
+    """
+    import time
+    
+    for attempt in range(max_retries):
+        try:
+            # Try to get the result using the call_id
+            inputs = {
+                "call_id": call_id,
+                "action": "get_result"
+            }
+            
+            res = get_deploy_client('databricks').predict(
+                endpoint=endpoint_name,
+                inputs=inputs,
+            )
+            
+            # Check if we have a final result
+            if "output" in res:
+                output_content = res["output"]
+                if isinstance(output_content, dict) and output_content.get("type") != "function_call_output":
+                    return output_content
+                elif isinstance(output_content, str) and "Handed off to:" not in output_content:
+                    return output_content
+            
+            # Wait before next attempt
+            time.sleep(delay)
+            
+        except Exception as e:
+            print(f"Polling attempt {attempt + 1} failed: {e}")
+            time.sleep(delay)
+    
+    return None
     
     # Handle different response formats
     if "output" in res:
         # Multi-agent supervisor response format
         output_content = res["output"]
-        if isinstance(output_content, list):
+        
+        # Check if this is a function call output that needs polling
+        if isinstance(output_content, dict) and output_content.get("type") == "function_call_output":
+            call_id = output_content.get("call_id")
+            handoff_message = output_content.get("output", "")
+            
+            # For now, return the handoff message with a note about polling
+            content = f"{handoff_message}\n\n*Note: This request has been handed off to a specialized assistant. The complete response may require additional processing time.*"
+            return [{"role": "assistant", "content": content}], request_id
+        
+        elif isinstance(output_content, list):
             # If output is a list, try to extract text content
             text_parts = []
             for item in output_content:
                 if isinstance(item, dict):
-                    if "content" in item:
+                    # Handle function call outputs
+                    if item.get("type") == "function_call_output":
+                        handoff_message = item.get("output", "")
+                        text_parts.append(f"{handoff_message} (Processing...)")
+                    elif "content" in item:
                         text_parts.append(str(item["content"]))
                     elif "text" in item:
                         text_parts.append(str(item["text"]))
