@@ -119,10 +119,20 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
         inputs=inputs,
     )
     
-    # Debug: log the response
-    print("DEBUG: Response received:", res)
+    try:
+        res = get_deploy_client('databricks').predict(
+            endpoint=endpoint_name,
+            inputs=inputs,
+        )
+    except Exception as e:
+        print(f"DEBUG: Error calling multi-agent supervisor: {e}")
+        return [{"role": "assistant", "content": "I encountered an issue while processing your request. The system is currently experiencing some difficulties. Please try again in a moment or contact support if the issue persists."}], None
+    
     # Extract request_id with fallback to None
     request_id = res.get("databricks_output", {}).get("databricks_request_id") if res else None
+    
+    # Debug: log the response
+    print("DEBUG: Response received:", res)
     
     # Check for handoff messages early
     if isinstance(res, dict):
@@ -130,7 +140,7 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
             if isinstance(value, str) and "Handed off to:" in value:
                 print("DEBUG: Found handoff message in", key)
                 return [{"role": "assistant", "content": "I am processing your request. Please wait for the complete response."}], request_id
-    
+        
         # Check for the specific response format we are seeing
         if res.get("object") == "response" and "output" in res:
             output_list = res["output"]
@@ -141,6 +151,10 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
                         if "Handed off to:" in output_text:
                             print("DEBUG: Found function call output handoff message")
                             return [{"role": "assistant", "content": "I am processing your request. Please wait for the complete response."}], request_id
+                        elif "Error" in output_text or "error" in output_text.lower():
+                            print("DEBUG: Found error in function call output")
+                            return [{"role": "assistant", "content": "I encountered an issue while processing your request. Please try again in a moment."}], request_id
+    
     # Handle different response formats based on Databricks multi-agent supervisor patterns
     if "input" in res:
         # Multi-agent supervisor returns conversation history in 'input' field
