@@ -172,6 +172,40 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
         elif isinstance(output_content, dict):
             if output_content.get("type") == "function_call_output":
                 # This is a handoff message, return a processing message
+                return [{"role": "assistant", "content": "I am processing your request. The system is gathering information for you. Please wait a moment for the complete response."}], request_id
+            elif "content" in output_content:
+                return [{"role": "assistant", "content": str(output_content["content"])}], request_id
+            elif "text" in output_content:
+                return [{"role": "assistant", "content": str(output_content["text"])}], request_id
+        # If output is a list, look for the final response
+        elif isinstance(output_content, list):
+            # Look for the last assistant message with actual content
+            final_response = extract_final_assistant_response(output_content)
+            if final_response:
+                return [{"role": "assistant", "content": final_response}], request_id
+            
+            # Fallback: try to extract any text content
+            text_parts = []
+            for item in output_content:
+                if isinstance(item, dict):
+                    if "content" in item:
+                        text_parts.append(str(item["content"]))
+                    elif "text" in item:
+                        text_parts.append(str(item["text"]))
+                    elif "output" in item and isinstance(item["output"], str):
+                        # Handle function call outputs that might contain the final response
+                        text_parts.append(str(item["output"]))
+                    else:
+                        text_parts.append(str(item))
+                else:
+                    text_parts.append(str(item))
+            if text_parts:
+                return [{"role": "assistant", "content": " ".join(text_parts)}], request_id
+        
+        # If output is a dict, check for specific patterns
+        elif isinstance(output_content, dict):
+            if output_content.get("type") == "function_call_output":
+                # This is a handoff message, return a processing message
                 return [{"role": "assistant", "content": "I am processing your request. Please wait a moment for the complete response."}], request_id
             elif "content" in output_content:
                 return [{"role": "assistant", "content": str(output_content["content"])}], request_id
