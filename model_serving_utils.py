@@ -120,6 +120,8 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
     )
     
     # Handle different response formats based on Databricks multi-agent supervisor patterns
+    # Extract request_id with fallback to None
+    request_id = res.get("databricks_output", {}).get("databricks_request_id") if res else None
     if "input" in res:
         # Multi-agent supervisor returns conversation history in 'input' field
         conversation_history = res["input"]
