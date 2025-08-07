@@ -24,7 +24,7 @@ def query_endpoint_stream(endpoint_name: str, messages: list[dict[str, str]], ma
 
     # Prepare input payload for multi-agent supervisor
     inputs = {
-        "input": user_message,
+        "input": [user_message],
         "max_output_tokens": max_tokens,
     }
     if return_traces:
@@ -105,7 +105,7 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
     
     # Prepare input payload for multi-agent supervisor
     inputs = {
-        "input": user_message,
+        "input": [user_message],
         "max_output_tokens": max_tokens,
     }
     
