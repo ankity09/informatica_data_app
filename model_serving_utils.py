@@ -121,6 +121,8 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
     
     # Debug: log the response
     print("DEBUG: Response received:", res)
+    # Extract request_id with fallback to None
+    request_id = res.get("databricks_output", {}).get("databricks_request_id") if res else None
     
     # Check for handoff messages early
     if isinstance(res, dict):
@@ -129,6 +131,16 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
                 print("DEBUG: Found handoff message in", key)
                 return [{"role": "assistant", "content": "I am processing your request. Please wait for the complete response."}], request_id
     
+        # Check for the specific response format we are seeing
+        if res.get("object") == "response" and "output" in res:
+            output_list = res["output"]
+            if isinstance(output_list, list):
+                for item in output_list:
+                    if isinstance(item, dict) and item.get("type") == "function_call_output":
+                        output_text = item.get("output", "")
+                        if "Handed off to:" in output_text:
+                            print("DEBUG: Found function call output handoff message")
+                            return [{"role": "assistant", "content": "I am processing your request. Please wait for the complete response."}], request_id
     # Handle different response formats based on Databricks multi-agent supervisor patterns
     if "input" in res:
         # Multi-agent supervisor returns conversation history in 'input' field
