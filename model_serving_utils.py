@@ -119,76 +119,93 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
         inputs=inputs,
     )
     
-    # Handle different response formats
-    if "output" in res:
-        # Multi-agent supervisor response format
-        output_content = res["output"]
+    # Handle different response formats based on Databricks multi-agent supervisor patterns
+    if "input" in res:
+        # Multi-agent supervisor returns conversation history in 'input' field
+        conversation_history = res["input"]
         
-        # If output is a list (conversation history), extract the final assistant response
-        if isinstance(output_content, list):
-            # Look for the last assistant message with actual content
-            final_response = None
-            for item in reversed(output_content):
-                if (isinstance(item, dict) and 
-                    item.get("role") == "assistant" and 
-                    item.get("type") == "message" and
-                    item.get("content")):
-                    
-                    content = item["content"]
-                    if isinstance(content, list):
-                        # Extract text from content array
-                        text_parts = []
-                        for content_item in content:
-                            if isinstance(content_item, dict) and content_item.get("type") == "output_text":
-                                text_parts.append(content_item.get("text", ""))
-                        if text_parts:
-                            final_response = " ".join(text_parts)
-                            break
-                    elif isinstance(content, str):
-                        final_response = content
-                        break
-            
+        if isinstance(conversation_history, list):
+            # Extract the final assistant response from conversation history
+            final_response = extract_final_assistant_response(conversation_history)
             if final_response:
                 return [{"role": "assistant", "content": final_response}], request_id
-        
-        # Handle single function call output
-        elif isinstance(output_content, dict) and output_content.get("type") == "function_call_output":
-            handoff_message = output_content.get("output", "")
-            content = f"{handoff_message}\n\n*Note: This request has been handed off to a specialized assistant. The complete response may require additional processing time.*"
-            return [{"role": "assistant", "content": content}], request_id
-        
-        # Handle other output formats
-        else:
-            content = str(output_content)
-            return [{"role": "assistant", "content": content}], request_id
-            
-    elif "messages" in res:
+    
+    # Fallback to other response formats
+    if "output" in res:
+        output_content = res["output"]
+        if isinstance(output_content, str):
+            return [{"role": "assistant", "content": output_content}], request_id
+        elif isinstance(output_content, list):
+            # Try to extract text from output list
+            text_parts = []
+            for item in output_content:
+                if isinstance(item, dict):
+                    if "content" in item:
+                        text_parts.append(str(item["content"]))
+                    elif "text" in item:
+                        text_parts.append(str(item["text"]))
+                    else:
+                        text_parts.append(str(item))
+                else:
+                    text_parts.append(str(item))
+            if text_parts:
+                return [{"role": "assistant", "content": " ".join(text_parts)}], request_id
+    
+    if "messages" in res:
         return res["messages"], request_id
     elif "choices" in res:
         return [res["choices"][0]["message"]], request_id
-    else:
-        # Fallback: try to extract response from various possible fields
-        if "response" in res:
-            response_content = res["response"]
-            if isinstance(response_content, list):
-                content = " ".join([str(item) for item in response_content])
-            else:
-                content = str(response_content)
-            return [{"role": "assistant", "content": content}], request_id
-        elif "text" in res:
-            text_content = res["text"]
-            if isinstance(text_content, list):
-                content = " ".join([str(item) for item in text_content])
-            else:
-                content = str(text_content)
-            return [{"role": "assistant", "content": content}], request_id
-        else:
-            # If we can't find a response, return the raw response as a string
-            if isinstance(res, list):
-                content = " ".join([str(item) for item in res])
-            else:
-                content = str(res)
-            return [{"role": "assistant", "content": content}], request_id
+    
+    # Final fallback - return a generic message
+    return [{"role": "assistant", "content": "I received your request but couldn't process the response properly. Please try again."}], request_id
+
+
+def extract_final_assistant_response(conversation_history):
+    """
+    Extract the final assistant response from conversation history.
+    Based on Databricks multi-agent supervisor response patterns.
+    """
+    if not isinstance(conversation_history, list):
+        return None
+    
+    # Look for the last assistant message with actual content
+    for item in reversed(conversation_history):
+        if not isinstance(item, dict):
+            continue
+            
+        # Check if this is an assistant message
+        if item.get("role") == "assistant" and item.get("type") == "message":
+            content = item.get("content")
+            if not content:
+                continue
+                
+            # Handle different content formats
+            if isinstance(content, str):
+                # Direct string content
+                if content.strip():
+                    return content
+            elif isinstance(content, list):
+                # Content array with text items
+                text_parts = []
+                for content_item in content:
+                    if isinstance(content_item, dict):
+                        if content_item.get("type") == "output_text":
+                            text = content_item.get("text", "")
+                            if text.strip():
+                                text_parts.append(text)
+                        elif "text" in content_item:
+                            text = content_item.get("text", "")
+                            if text.strip():
+                                text_parts.append(text)
+                        elif "content" in content_item:
+                            text = content_item.get("content", "")
+                            if text.strip():
+                                text_parts.append(text)
+                
+                if text_parts:
+                    return " ".join(text_parts)
+    
+    return None
 
 
 def submit_feedback(endpoint, request_id, rating):
