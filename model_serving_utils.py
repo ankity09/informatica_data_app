@@ -96,7 +96,14 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
     """Calls a model serving endpoint."""
     
     # For multi-agent supervisor endpoints, use the 'input' format
+    # For multi-agent supervisor endpoints, use the input format
     # Extract the user message from the messages array
+    user_message = ""
+    for msg in messages:
+        if msg.get("role") == "user":
+            user_message = msg.get("content", "")
+            break
+
     # Prepare input payload for multi-agent supervisor
     # The endpoint expects a Message object with role and content
     inputs = {
