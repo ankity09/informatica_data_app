@@ -91,10 +91,15 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
         inputs["databricks_options"] = {"return_trace": True}
     
     try:
+        print(f"DEBUG: Calling endpoint {endpoint_name} with inputs: {inputs}")
         res = client.predict(endpoint=endpoint_name, inputs=inputs)
+        print(f"DEBUG: Received response from endpoint: {res}")
     except Exception as e:
-        print(f"Error calling endpoint: {e}")
-        return [{"role": "assistant", "content": "I encountered an issue while processing your request. Please try again in a moment."}], None
+        print(f"ERROR: Error calling endpoint {endpoint_name}: {e}")
+        print(f"ERROR: Error type: {type(e).__name__}")
+        import traceback
+        print(f"ERROR: Traceback: {traceback.format_exc()}")
+        return [{"role": "assistant", "content": f"I encountered an issue while processing your request: {str(e)}. Please try again in a moment."}], None
     
     # Extract request_id
     request_id = res.get("databricks_output", {}).get("databricks_request_id") if res else None

@@ -101,6 +101,39 @@ async def health_check():
         endpoint_supports_feedback=ENDPOINT_SUPPORTS_FEEDBACK
     )
 
+@app.get("/api/test-endpoint")
+async def test_endpoint():
+    """Test endpoint connectivity"""
+    try:
+        logger.info(f"Testing endpoint connectivity: {SERVING_ENDPOINT}")
+        
+        # Test with a simple message
+        test_messages = [{"role": "user", "content": "Hello, this is a test message."}]
+        
+        response_messages, request_id = query_endpoint(
+            endpoint_name=SERVING_ENDPOINT,
+            messages=test_messages,
+            max_tokens=100,
+            return_traces=False
+        )
+        
+        return {
+            "status": "success",
+            "endpoint": SERVING_ENDPOINT,
+            "response": response_messages,
+            "request_id": request_id,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Endpoint test failed: {e}")
+        return {
+            "status": "error",
+            "endpoint": SERVING_ENDPOINT,
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
+
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(message: ChatMessage):
     """Send a message to the AI chatbot"""
