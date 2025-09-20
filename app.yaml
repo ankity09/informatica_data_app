@@ -1,4 +1,4 @@
-command: ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--timeout-keep-alive", "300"]
+command: ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
 
 env:
   - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
