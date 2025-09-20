@@ -94,6 +94,12 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
         print(f"DEBUG: Calling endpoint {endpoint_name} with inputs: {inputs}")
         res = client.predict(endpoint=endpoint_name, inputs=inputs)
         print(f"DEBUG: Received response from endpoint: {res}")
+        print(f"DEBUG: Response keys: {list(res.keys()) if isinstance(res, dict) else 'Not a dict'}")
+        if isinstance(res, dict) and "output" in res:
+            print(f"DEBUG: Output content: {res['output']}")
+            if isinstance(res["output"], list):
+                for i, item in enumerate(res["output"]):
+                    print(f"DEBUG: Output item {i}: {item}")
     except Exception as e:
         print(f"ERROR: Error calling endpoint {endpoint_name}: {e}")
         print(f"ERROR: Error type: {type(e).__name__}")
@@ -112,6 +118,22 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
         if final_response:
             return [{"role": "assistant", "content": final_response}], request_id
     
+    # Check for complete response in other fields
+    if "messages" in res and isinstance(res["messages"], list):
+        # Look for assistant messages in the messages array
+        for msg in res["messages"]:
+            if isinstance(msg, dict) and msg.get("role") == "assistant" and msg.get("content"):
+                content = msg["content"]
+                if "Handed off to:" not in content:
+                    return [{"role": "assistant", "content": content}], request_id
+    
+    # Check for response in other possible fields
+    for field in ["response", "result", "answer", "content"]:
+        if field in res and res[field]:
+            content = str(res[field])
+            if "Handed off to:" not in content:
+                return [{"role": "assistant", "content": content}], request_id
+    
     # Handle output field responses
     if "output" in res:
         output_content = res["output"]
@@ -124,26 +146,34 @@ def query_endpoint(endpoint_name, messages, max_tokens, return_traces):
                 return [{"role": "assistant", "content": output_content}], request_id
         
         elif isinstance(output_content, list):
-            # List output - extract text content
-            final_response = extract_final_assistant_response(output_content)
-            if final_response:
-                return [{"role": "assistant", "content": final_response}], request_id
+            # List output - look for the actual response content, not just handoff messages
+            response_parts = []
+            handoff_detected = False
             
-            # Fallback: extract any text content
-            text_parts = []
             for item in output_content:
                 if isinstance(item, dict):
-                    if "content" in item:
-                        text_parts.append(str(item["content"]))
-                    elif "text" in item:
-                        text_parts.append(str(item["text"]))
-                    elif "output" in item and isinstance(item["output"], str):
-                        text_parts.append(str(item["output"]))
-                elif isinstance(item, str):
-                    text_parts.append(item)
+                    # Check if this is a handoff message
+                    if item.get("type") == "function_call_output" and "Handed off to:" in str(item.get("output", "")):
+                        handoff_detected = True
+                        continue  # Skip handoff messages
+                    
+                    # Look for actual content in various formats
+                    if "content" in item and item["content"]:
+                        response_parts.append(str(item["content"]))
+                    elif "text" in item and item["text"]:
+                        response_parts.append(str(item["text"]))
+                    elif "output" in item and isinstance(item["output"], str) and "Handed off to:" not in item["output"]:
+                        response_parts.append(str(item["output"]))
+                elif isinstance(item, str) and "Handed off to:" not in item:
+                    response_parts.append(item)
             
-            if text_parts:
-                return [{"role": "assistant", "content": " ".join(text_parts)}], request_id
+            # If we found actual content, return it
+            if response_parts:
+                return [{"role": "assistant", "content": " ".join(response_parts)}], request_id
+            
+            # If we only found handoff messages, return a processing message
+            if handoff_detected:
+                return [{"role": "assistant", "content": "I am processing your request. Please wait for the complete response."}], request_id
     
     # Handle standard chat completions format
     if "messages" in res:
