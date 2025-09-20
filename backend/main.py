@@ -52,7 +52,7 @@ async def startup_event():
 SERVING_ENDPOINT = os.getenv('SERVING_ENDPOINT')
 if not SERVING_ENDPOINT:
     # Default to the user.*multi-agent supervisor endpoint
-    SERVING_ENDPOINT = "mas-43e5c6fd-endpoint"
+    SERVING_ENDPOINT = "mas-f63d2792-endpoint"
     logger.info(f"Using default Databricks endpoint: {SERVING_ENDPOINT}")
 else:
     logger.info(f"Using configured Databricks endpoint: {SERVING_ENDPOINT}")
